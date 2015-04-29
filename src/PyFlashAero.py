@@ -46,7 +46,6 @@ def SyncFolder(args):
     print("Use ctrl-c to exit!")
     while True:
         for folder in args.folder_remote.split(","):
-            print("Remote folder: " + folder)
             a.sync_folder_to_remote_folder(folder, args.folder_local, extensions=args.ext)
         time.sleep(1)
         pass
