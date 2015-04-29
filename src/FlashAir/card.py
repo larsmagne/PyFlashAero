@@ -209,7 +209,7 @@ class connection(object):
         #combine path and file
         local_path+=local_file_name
 
-        print("Remote: %s (%d)" % (remote_location, entry.byte_size))
+        #print("Remote: %s (%d)" % (remote_location, entry.byte_size))
 
         #does file exist already?
         if(os.path.isfile(local_path) and
