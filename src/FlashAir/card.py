@@ -212,7 +212,7 @@ class connection(object):
         if(os.path.isfile(local_path)):  
             return (3,0,'')
         
-        print("Downloading:" + local_file_name, end=" ... ")
+        print("Downloading:" + local_file_name)
         #get the stuff from the FlashAir
         conn.request("GET", remote_location)
         download = conn.getresponse()
