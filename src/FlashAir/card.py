@@ -190,7 +190,8 @@ class connection(object):
         else:
             return (1,())
         
-    def download_file(self, remote_location, local_path='', local_file_name=''):
+    def download_file(self, entry, local_path='', local_file_name=''):
+        remote_location = entry.directory_name + '/' + entry.file_name
         conn = http.client.HTTPConnection(self.host)
         if(len(local_file_name)==0):
             local_file_name = remote_location.split('/')[-1]
@@ -207,12 +208,18 @@ class connection(object):
         
         #combine path and file
         local_path+=local_file_name
-                        
+
+        print("Remote: %s (%d)" % (remote_location, entry.byte_size))
+
         #does file exist already?
-        if(os.path.isfile(local_path)):  
+        if(os.path.isfile(local_path) and
+           entry.byte_size == os.path.getsize(local_path)):
             return (3,0,'')
-        
-        print("Downloading:" + local_file_name)
+
+        if(os.path.isfile(local_path)):
+            print("Refreshing:" + local_file_name)
+        else:
+            print("Downloading:" + local_file_name)
         #get the stuff from the FlashAir
         conn.request("GET", remote_location)
         download = conn.getresponse()
@@ -231,7 +238,7 @@ class connection(object):
         return (int(download.status!=200), file_size,local_path)
     
     def download_file_list_entry(self, entry,local_path='', local_filename=''):
-        (status,size,local_filename)=self.download_file(entry.directory_name + '/' + entry.file_name, local_path, local_filename)
+        (status,size,local_filename)=self.download_file(entry, local_path, local_filename)
         if(status):
             return(1)
         
