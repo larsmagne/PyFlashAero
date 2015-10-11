@@ -8,6 +8,7 @@ Licence: GNU AGPL
 
 import os
 import http.client
+from subprocess import call
 
 class file_list_entry(object):
     file_name=''
@@ -27,8 +28,6 @@ class file_list_entry(object):
         self.file_name=file_name
         self.directory_name=directory_name
         self.byte_size=size
-        
-
         
         attributes=int(attributes)
         self.attribute_Archive=  not not(attributes & 1<<5)
@@ -178,7 +177,7 @@ class connection(object):
             outlst=[]
             for file in lines:
                 e=file.split(",")
-                
+        
                 if(len(e)!=6):
                     print("Error file list entry has " +str(len(e)) +" entrie(s) instead of expected 6, skipping entry")
                     continue;
@@ -190,8 +189,7 @@ class connection(object):
         else:
             return (1,())
         
-    def download_file(self, entry, local_path='', local_file_name=''):
-        remote_location = entry.directory_name + '/' + entry.file_name
+    def download_file(self, remote_location, local_path='', local_file_name=''):
         conn = http.client.HTTPConnection(self.host)
         if(len(local_file_name)==0):
             local_file_name = remote_location.split('/')[-1]
@@ -208,24 +206,18 @@ class connection(object):
         
         #combine path and file
         local_path+=local_file_name
-
-        #print("Remote: %s (%d)" % (remote_location, entry.byte_size))
-
+                        
         #does file exist already?
-        if(os.path.isfile(local_path) and
-           entry.byte_size == os.path.getsize(local_path)):
+        if(os.path.isfile(local_path)):  
             return (3,0,'')
-
-        if(os.path.isfile(local_path)):
-            print("Refreshing:" + local_file_name)
-        else:
-            print("Downloading:" + local_file_name)
+        
+        print("Downloading:" + local_file_name)
         #get the stuff from the FlashAir
         conn.request("GET", remote_location)
         download = conn.getresponse()
 
         if(download.status==200):
-            file = open(local_path, 'wb')   
+            file = open("/tmp/flash.tmp", 'wb')   
             while True:
                 buffer=download.read(1024*32)
                 if not buffer:
@@ -234,11 +226,14 @@ class connection(object):
                 file.write(buffer)
             file.close()
         download.close()
+        call(["rsync", "-a", "/tmp/flash.tmp", local_path])
         print("done (%d bytes) " % file_size)
+        #call(["rsync", "-a", local_path, "stories:.movie-current/"])
+        #print("Done rsync")
         return (int(download.status!=200), file_size,local_path)
     
     def download_file_list_entry(self, entry,local_path='', local_filename=''):
-        (status,size,local_filename)=self.download_file(entry, local_path, local_filename)
+        (status,size,local_filename)=self.download_file(entry.directory_name + '/' + entry.file_name, local_path, local_filename)
         if(status):
             return(1)
         

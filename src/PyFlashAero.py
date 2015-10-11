@@ -45,8 +45,7 @@ def SyncFolder(args):
     a=card.connection(socket.gethostbyname(args.card_uri.hostname), port, args.timeout)
     print("Use ctrl-c to exit!")
     while True:
-        for folder in args.folder_remote.split(","):
-            a.sync_folder_to_remote_folder(folder, args.folder_local, extensions=args.ext)
+        a.sync_folder_to_remote_folder(args.folder_remote, args.folder_local, extensions=args.ext)
         time.sleep(1)
         pass
 
